@@ -1,10 +1,31 @@
+# This makes screen write to the primary buffer I thin, so it tends to
+# overwrite your scrollback, making it so you can scroll up and down
+# in the terminal. I hate it though
 # termcapinfo xterm* ti@:te@
+
+# I really hate the visual bell in some terminals. I really don't need
+# you to flash the entire screen white at me to get my attention.
 termcapinfo * vb@
+
+# Keep a line at the bottom showing the windows I have
 hardstatus alwayslastline "%-w%{.wB}%n %t%{-}%+w %=%{.w} %H: %l %{-}%d/%m %c"
+
+# Swap between UTF-8 and ISO8859-1 via hotkeys
 bind i eval "encoding ISO8859-1" 'stuff "\14"'
 bind u eval "encoding UTF-8" 'stuff "\14"'
+
+# Don't show me the copyright
 startup_message off
+
+# Use nethack messages for fun
 nethack on
+
+# UTF-8 default on
 defutf8 on
+
+# Expand the default scrollback a bit
 defscrollback 800
+
+# Get rid of the 'lock my screen session' binding, gets accidentally
+# called far too often.
 bind x
