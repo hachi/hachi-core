@@ -1,0 +1,3 @@
+URxvt.background: Black
+URxvt.foreground: Grey90
+URxvt.scrollBar: False

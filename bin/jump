@@ -1,0 +1,71 @@
+#!/bin/bash
+
+shopt -s nullglob
+
+function die {
+    echo $@ 1>&2
+    exit 1
+}
+
+function warn {
+    echo $@ 1>&2
+}
+
+function via {
+    if [ "$JUMP_VERBOSE" ]
+    then
+        warn "Host: $HOST"
+        warn "Port: $PORT"
+        warn "Via: $@"
+    fi
+    exec ssh -q $@ "nc $HOST $PORT"
+}
+
+function local {
+    if [ "$JUMP_VERBOSE" ]
+    then
+        warn "Host: $HOST"
+        warn "Port: $PORT"
+        warn "Running local"
+    fi
+    exec nc $HOST $PORT
+}
+
+function find_location () {
+    for i in ~/.jump/gateway/*
+    do
+        source "$i" "$@"
+
+        if [[ "$LOCATION" ]]
+        then
+            return
+        fi
+    done
+
+    LOCATION="other"
+}
+
+HOST=$1
+PORT=$2
+
+case `uname` in
+Linux)
+    GATEWAY=`ip route list exact 0.0.0.0/0 | egrep -o '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+'`
+    ;;
+Darwin)
+    GATEWAY=`route -n get 0.0.0.0 | grep gateway: | egrep -o '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+'`
+    ;;
+esac
+
+[ "$JUMP_VERBOSE" ] && warn "Gateway is: $GATEWAY"
+
+find_location "$GATEWAY"
+
+[ "$JUMP_VERBOSE" ] && warn "Location is: $LOCATION"
+
+for i in ~/.jump/host-network/*
+do
+    source "$i" "$HOST" "$LOCATION"
+done
+
+local

@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Class::ISA;
+use Getopt::Long;
+
+Getopt::Long::Configure("bundling_override");
+
+my @extra_inc;
+my @extra_modules;
+my $dont_require = 0;
+my $no_class = 0;
+
+GetOptions(
+    "I|include=s"    => \@extra_inc,
+    "M|modules=s"    => \@extra_modules,
+    "d|dontrequire+" => \$dont_require,
+    "n|noclass+"     => \$no_class,
+);
+
+foreach my $inc (@extra_inc) {
+    eval "use lib $inc";
+}
+
+foreach my $extra_module (@extra_modules) {
+    unless (eval "require $extra_module") {
+        warn "Unable to load '$extra_module': $@\n";
+        next;
+    }
+}
+
+foreach my $class (@ARGV) {
+    if ($dont_require) {
+        # Don't do anything
+    } elsif (!eval "require $class") {
+        warn "Unable to load '$class': $@\n";
+        next;
+    }
+
+    my @supers = (Class::ISA::self_and_super_path($class), 'UNIVERSAL');
+    my %superorder = do { my $i = 0; map { $_, $i++ } @supers };
+    my @functions;
+
+
+    foreach my $super (@supers) {
+        no strict 'refs';
+        while (my ($symbol, $glob) = each %{"${super}::"}) {
+            next if ref($glob);
+            next unless *$glob{CODE};
+            push @functions, [$super, $symbol];
+        }
+    }
+
+    foreach my $method (sort { $a->[1] cmp $b->[1] || $superorder{$a->[0]} <=> $superorder{$b->[0]} } @functions) {
+        if ($no_class) {
+            print "$method->[1]\n";
+        } else {
+            print "$method->[0]\t$method->[1]\n";
+        }
+    }
+}

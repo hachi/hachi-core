@@ -1,0 +1,10 @@
+# termcapinfo xterm* ti@:te@
+termcapinfo * vb@
+hardstatus alwayslastline "%-w%{.wB}%n %t%{-}%+w %=%{.w} %H: %l %{-}%d/%m %c"
+bind i eval "encoding ISO8859-1" 'stuff "\14"'
+bind u eval "encoding UTF-8" 'stuff "\14"'
+startup_message off
+nethack on
+defutf8 on
+defscrollback 800
+bind x

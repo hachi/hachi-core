@@ -1,0 +1,15 @@
+#/bin/bash
+
+PATH="$1"
+OPTS="-xdev"
+
+if [ ! "$PATH" ]; then
+    echo "Usage: $0 [basepath]" >&2
+    echo "$0 tells you directory by directory how many inodes are being used." >&2
+    echo "   it is very slow, but it is thorough." >&2
+    exit 1
+fi
+
+find / -xdev -type d -print0 | \
+    xargs -0 -i bash -c \
+    'LINES=`find "$0" -xdev | wc -l`; echo "$LINES $0"' '{}'

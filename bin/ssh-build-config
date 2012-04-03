@@ -1,0 +1,71 @@
+#!/bin/bash
+
+function gen () {
+    for i in ~/.ssh/config.d/*
+    do
+        echo "######## START $i"
+        cat "$i"
+        echo "######## END $i"
+        echo
+    done
+}
+
+function parseargs () {
+    while (("$#" >= 1))
+    do
+        case "$1" in
+          -f|--force)
+            FORCE=1
+            ;;
+          -n|--dry-run)
+            DRYRUN=1
+            ;;
+          --)
+            DONE=1
+            ;;
+          -*|--*)
+            echo "Option parse error"
+            exit 1
+            ;;
+          *)
+            return
+            ;;
+        esac
+        shift
+
+        if (($DONE))
+        then
+            return
+        fi
+    done
+}
+
+parseargs "$@";
+
+NEWCONFIG=`gen`
+
+DIFFOUTPUT=`echo "$NEWCONFIG" | diff -u ~/.ssh/config -`
+
+REMOVEDCOUNT=`echo "$DIFFOUTPUT" | tail -n +3 | egrep '^-' | wc -l`
+
+CHANGECOUNT=`echo "$DIFFOUTPUT" | tail -n +3 | wc -l`
+
+if (( "CHANGECOUNT" <= 0 ))
+then
+    exit 0
+fi
+
+echo "$DIFFOUTPUT"
+
+if (( "$REMOVEDCOUNT" > 0 )) && [[ ! "$FORCE" ]]
+then
+    echo
+    echo "Failed because something got deleted"
+    exit 1
+fi
+
+if [[ ! "$DRYRUN" ]]
+then
+    cp ~/.ssh/config ~/.ssh/config.bak
+    echo "$NEWCONFIG" > ~/.ssh/config
+fi

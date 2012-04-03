@@ -1,0 +1,112 @@
+echo "Loading ~/.hachi/shell-common" >&2
+
+export SVNROOT=svn+ssh://hachi@svn.kuiki.net/svn/hachi
+export TZ=America/Los_Angeles
+export EMAIL=hachi@kuiki.net
+export NAME="Jonathan Steinert"
+export EDITOR=vim
+
+function cpanm () {
+    if [ ! -x $HOME/bin/cpanm ]
+    then
+        mkdir -p $HOME/bin/
+        wget -O $HOME/bin/ http://xrl.us/cpanm
+        chmod +x $HOME/bin/cpanm
+    fi
+    $HOME/bin/cpanm "$@"
+    return $?
+}
+
+function prepend_path () {
+    local IFS=":"
+    local NEWPATH="$*"
+
+    if [ -z "$PATH" ]
+    then
+        PATH="$NEWPATH"
+    else
+        PATH="$NEWPATH:$PATH"
+    fi
+
+    export PATH
+}
+
+function prepend_perl () {
+    local IFS=":"
+    local NEWPERL="$*"
+
+    if [ -z "$PERL5LIB" ]
+    then
+        PERL5LIB="$NEWPERL"
+    else
+        PERL5LIB="$NEWPERL:$PERL5LIB"
+    fi
+
+    if [ "$STY" ]
+    then
+        screen -X setenv PERL5LIB "$PERL5LIB"
+    fi
+
+    export PERL5LIB
+}
+
+prepend_path ~/bin ~/.hachi/bin
+
+export DEBEMAIL="deb@hachi.kuiki.net"
+export DEBFULLNAME="Jonathan Steinert"
+
+
+case $(uname) in
+  Linux)
+    COLOR="--color=auto"
+    ;;
+  Darwin)
+    COLOR="-G"
+    ;;
+esac
+
+alias ll="ls $COLOR -slF"
+alias ls="ls $COLOR -F"
+
+alias screen="screen -U"
+
+alias irc="ssh -qt kuiki.net screen -p irssi -UDR main"
+alias ircx="ssh -qt kuiki.net screen -p irssi -Ux main"
+
+function oldssh {
+    OLDKEYS=~/.ssh/keys-old/*
+    if [ -n "$OLDKEYS" ]
+    then
+        ssh-add -t 120 ~/.ssh/keys-old/*
+    else
+        echo "No old ssh keys to try and use"
+        return 1;
+    fi
+
+    ssh "$@"
+}
+
+alias cstrace="strace -T -o '!colorize-strace'"
+
+function scd {
+    cd $* || return
+    screen -X chdir `pwd`
+}
+
+alias ssh="TERM=xterm ssh"
+
+alias diff="diff --exclude=.git"
+
+if (echo foo | grep --exclude-dir=.svn foo >/dev/null 2>&1)
+then
+    alias grep="grep --exclude-dir=.svn --exclude-dir=.git"
+fi
+
+if [ "LC_COLORTERM" ]
+then
+    TERM="$LC_COLORTERM"; export term
+fi
+
+#DEBIAN_REVISION_MANDATORY=1 make-kpkg --revision 0.hachi1 --config oldconfig --rootcmd fakeroot --us --uc debian configure binary
+
+# vim: filetype=sh softtabstop=4 expandtab

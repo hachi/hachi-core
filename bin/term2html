@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+
+use HTML::FromANSI;
+
+my $text = ansi2html(do { local $/; <> });
+
+# Remove start and end
+$text =~ s{<tt><font.*?>}{};
+$text =~ s{</font></tt>}{};
+
+# Turn each black/black with just a line break in it into just a line break.
+$text =~ s{<span style='color: black; background: black; '><br></span>}{<br>}g;
+
+# Turn all line breaks into newlines
+$text =~ s/<br>/\n/g;
+
+# Drop the black background in all the styles, redundant.
+$text =~ s/background: black; //g;
+
+# Drop the grey foreground only styled spans, redundant.
+$text =~ s{<span style='color: gray; '>(.*?)</span>}{$1}g;
+
+$text =~ s{&nbsp;}{ }g;
+
+print qq(<div style=\"background-color:black; color: gray; \">\n);
+print qq(<pre>\n);
+print qq($text\n);
+print qq(</pre>\n);
+print qq(</div>\n);
