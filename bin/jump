@@ -1,5 +1,9 @@
 #!/bin/bash
 
+BASE_PATH=~/.hachi/jump
+GATEWAY_PATH="$BASE_PATH"/gateway
+HOSTNETWORK_PATH="$BASE_PATH"/host-network
+
 shopt -s nullglob
 
 function die {
@@ -32,7 +36,7 @@ function local {
 }
 
 function find_location () {
-    for i in ~/.jump/gateway/*
+    for i in "$GATEWAY_PATH"/*
     do
         source "$i" "$@"
 
@@ -63,7 +67,7 @@ find_location "$GATEWAY"
 
 [ "$JUMP_VERBOSE" ] && warn "Location is: $LOCATION"
 
-for i in ~/.jump/host-network/*
+for i in "$HOSTNETWORK_PATH"/*
 do
     source "$i" "$HOST" "$LOCATION"
 done
