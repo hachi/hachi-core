@@ -18,7 +18,7 @@ function via {
         warn "Port: $PORT"
         warn "Via: $@"
     fi
-    exec ssh -q $@ "nc $HOST $PORT"
+    exec ssh -q $@ "nc \"$HOST\" \"$PORT\""
 }
 
 function local {
@@ -28,7 +28,7 @@ function local {
         warn "Port: $PORT"
         warn "Running local"
     fi
-    exec nc $HOST $PORT
+    exec nc "$HOST" "$PORT"
 }
 
 function find_location () {
@@ -45,8 +45,8 @@ function find_location () {
     LOCATION="other"
 }
 
-HOST=$1
-PORT=$2
+HOST="$1"
+PORT="$2"
 
 case `uname` in
 Linux)
